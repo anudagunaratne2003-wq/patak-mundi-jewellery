@@ -42,8 +42,12 @@ export default {
         },
       },
       fontFamily: {
-        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
-        sans: ['"Jost"', 'Helvetica', 'Arial', 'sans-serif'],
+        // Lameur is the site-wide typeface. The fonts after it are only used
+        // if its files in public/fonts are missing.
+        serif: ['Lameur', '"Cormorant Garamond"', 'Georgia', 'serif'],
+        sans: ['Lameur', '"Jost"', 'Helvetica', 'Arial', 'sans-serif'],
+        // The PÁTAK MUNDI wordmark keeps its own typeface.
+        logo: ['"Cormorant Garamond"', 'Georgia', 'serif'],
       },
       letterSpacing: {
         widest: '0.25em',
@@ -91,6 +95,10 @@ export default {
         shimmer: {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
+        },
+        slideProgress: {
+          '0%': { width: '0%' },
+          '100%': { width: '100%' },
         },
       },
     },

@@ -1,526 +1,334 @@
-export type Category = 'Rings' | 'Necklaces' | 'Earrings' | 'Bracelets' | 'Watches';
-export type Material = '18k Gold' | 'Platinum' | 'Sterling Silver' | 'Rose Gold' | 'White Gold';
-export type Gemstone = 'Diamond' | 'Sapphire' | 'Emerald' | 'Pearl' | 'Ruby' | 'None';
-export type Collection =
-  | 'Everyday Elegance'
-  | 'Bridal Collection'
-  | 'Gold Collection'
-  | 'Diamond Collection'
-  | 'Minimalist Collection'
-  | 'Statement Pieces';
+export type Category = 'Rings' | 'Pendants' | 'Bracelets' | 'Earrings';
 
+/** One piece in the portfolio. Only id, name, category, images and description are required. */
 export interface Product {
+  /** Unique, URL-friendly id — used in the page address, e.g. /portfolio/architrave-pendant */
   id: string;
   name: string;
   category: Category;
-  price: number;
-  oldPrice?: number;
-  rating: number;
-  reviewCount: number;
+  /** Paths under /public, e.g. '/images/portfolio/rings/my-ring.jpg'. The first image is the cover. */
   images: string[];
-  material: Material;
-  gemstone: Gemstone;
-  collection: Collection;
-  isNew: boolean;
-  isBestSeller: boolean;
-  inStock: boolean;
-  sizes?: string[];
+  /** e.g. 'Sterling Silver', '18k Rose Gold' */
+  material?: string;
+  /** e.g. 'Aquamarine', 'Pink Sapphire'. Leave out for pure metalwork. */
+  gemstone?: string;
+  /** Optional design collection / series this piece belongs to — must match a name in COLLECTIONS. */
+  collection?: string;
   description: string;
-  details: string[];
+  /** Short design notes shown as bullet points on the piece's page. */
+  details?: string[];
 }
 
-export interface CartItem {
-  productId: string;
-  quantity: number;
-  size?: string;
-}
-
+/** Category tiles on the home page. Covers point at portfolio photos. */
 export const CATEGORIES: { name: Category; image: string; tagline: string }[] = [
   {
     name: 'Rings',
-    image: 'https://images.pexels.com/photos/12427696/pexels-photo-12427696.jpeg?auto=compress&cs=tinysrgb&w=800',
+    image: '/images/portfolio/rings/ruby-pave-ring.jpg',
     tagline: 'Symbols of forever',
   },
   {
-    name: 'Necklaces',
-    image: 'https://images.pexels.com/photos/9173459/pexels-photo-9173459.jpeg?auto=compress&cs=tinysrgb&w=800',
+    name: 'Pendants',
+    image: '/images/portfolio/pendants/aquamarine-pendant.jpg',
     tagline: 'Grace the décolletage',
   },
   {
-    name: 'Earrings',
-    image: 'https://images.pexels.com/photos/5370644/pexels-photo-5370644.jpeg?auto=compress&cs=tinysrgb&w=800',
+    name: 'Bracelets',
+    image: '/images/portfolio/bracelets/four-moods-gemstone-bracelet.jpg',
     tagline: 'Light meets form',
   },
   {
-    name: 'Bracelets',
-    image: 'https://images.pexels.com/photos/20141640/pexels-photo-20141640.jpeg?auto=compress&cs=tinysrgb&w=800',
-    tagline: 'Wrist-worthy elegance',
-  },
-  {
-    name: 'Watches',
-    image: 'https://images.pexels.com/photos/10591429/pexels-photo-10591429.jpeg?auto=compress&cs=tinysrgb&w=800',
-    tagline: 'Time, refined',
+    name: 'Earrings',
+    // TODO: replace with an earring photo once one is in public/images/portfolio/earrings/
+    image: 'https://images.pexels.com/photos/5370644/pexels-photo-5370644.jpeg?auto=compress&cs=tinysrgb&w=800',
+    tagline: 'Worthy elegance',
   },
 ];
 
-export const COLLECTIONS: { name: Collection; image: string; description: string }[] = [
+/** Design collections / series. Each one gets its own page under /collections. */
+export const COLLECTIONS: { name: string; image: string; description: string }[] = [
   {
-    name: 'Everyday Elegance',
-    image: 'https://images.pexels.com/photos/13924051/pexels-photo-13924051.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'Understated pieces designed to be worn from morning to evening, day after day.',
+    name: 'Architrave',
+    image: '/images/portfolio/pendants/architrave-pendant-01.jpg',
+    description: 'Jewellery drawn from the lines of classical architecture — beams, columns and arches rendered in silver.',
   },
   {
-    name: 'Bridal Collection',
-    image: 'https://images.pexels.com/photos/3641059/pexels-photo-3641059.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'For the day you will never forget — heirloom-worthy rings and adornments.',
-  },
-  {
-    name: 'Gold Collection',
-    image: 'https://images.pexels.com/photos/5737286/pexels-photo-5737286.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'The warmth of 18k gold, sculpted into timeless silhouettes.',
-  },
-  {
-    name: 'Diamond Collection',
-    image: 'https://images.pexels.com/photos/7700270/pexels-photo-7700270.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'Hand-selected stones set by master craftsmen for maximum brilliance.',
-  },
-  {
-    name: 'Minimalist Collection',
-    image: 'https://images.pexels.com/photos/21787515/pexels-photo-21787515.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'Clean lines and quiet luxury for the modern aesthete.',
-  },
-  {
-    name: 'Statement Pieces',
-    image: 'https://images.pexels.com/photos/32988651/pexels-photo-32988651.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'Bold, sculptural designs that command the room.',
+    name: 'Nawagraha',
+    image: '/images/portfolio/rings/nawagraha-kethu-ring.jpg',
+    description: 'Astrological rings, each dedicated to a planetary influence — worn to bring balance, strength, or grace.',
   },
 ];
 
-const RING_SIZES = ['4', '5', '6', '7', '8', '9'];
-const NECKLACE_SIZES = ['14"', '16"', '18"', '20"'];
-const BRACELET_SIZES = ['S', 'M', 'L'];
-const WATCH_SIZES = ['32mm', '36mm', '40mm'];
+/*
+ * ─── YOUR PORTFOLIO ───────────────────────────────────────────────────────
+ * To add a piece:
+ *   1. Put its photo(s) in public/images/portfolio/<rings|pendants|bracelets|earrings>/
+ *      Name files in lowercase-with-hyphens, e.g. emerald-cocktail-ring.jpg
+ *      (extra angles: emerald-cocktail-ring-side.jpg, emerald-cocktail-ring-worn.jpg)
+ *   2. Copy one of the entries below, give it a new unique `id`, and update the details.
+ * To remove a piece, delete its { ... } block.
+ * Pieces appear in the portfolio in the order they are listed here.
+ */
+const RINGS = '/images/portfolio/rings';
+const PENDANTS = '/images/portfolio/pendants';
+const BRACELETS = '/images/portfolio/bracelets';
 
 export const PRODUCTS: Product[] = [
+  // ── Rings ──────────────────────────────────────────────
   {
-    id: 'aurora-solitaire',
-    name: 'Aurora Solitaire Ring',
+    id: 'pink-sapphire-ring',
+    name: 'Pink Sapphire Ring',
     category: 'Rings',
-    price: 2890,
-    rating: 4.9,
-    reviewCount: 214,
-    images: [
-      'https://images.pexels.com/photos/12290109/pexels-photo-12290109.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/12427696/pexels-photo-12427696.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/11745298/pexels-photo-11745298.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: 'Platinum',
-    gemstone: 'Diamond',
-    collection: 'Bridal Collection',
-    isNew: false,
-    isBestSeller: true,
-    inStock: true,
-    sizes: RING_SIZES,
-    description: 'A single brilliant-cut diamond cradled in a hand-finished platinum band. The Aurora is our most beloved engagement ring — luminous, architectural, eternal.',
-    details: ['1.2ct brilliant-cut diamond', 'Conflict-free, VS1 clarity', 'Hand-polished platinum band', 'Engravable inner band'],
+    images: [`${RINGS}/pink-sapphire-ring.jpg`, `${RINGS}/pink-sapphire-ring-worn.jpg`],
+    material: '18k Gold',
+    gemstone: 'Pink Sapphire',
+    description:
+      'A cushion-cut pink stone flanked by bright white side stones in warm gold — designed for a client and first worn beneath the Eiffel Tower.',
+    details: ['Cushion-cut centre stone', 'Claw-set side stones', 'Made to the client’s ring size'],
   },
   {
-    id: 'celeste-halo',
-    name: 'Céleste Halo Ring',
+    id: 'ruby-pave-ring',
+    name: 'Ruby Pavé Ring',
     category: 'Rings',
-    price: 3450,
-    oldPrice: 3990,
-    rating: 4.8,
-    reviewCount: 156,
-    images: [
-      'https://images.pexels.com/photos/2732096/pexels-photo-2732096.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/21928764/pexels-photo-21928764.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/13524236/pexels-photo-13524236.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
+    images: [`${RINGS}/ruby-pave-ring.jpg`],
     material: 'White Gold',
-    gemstone: 'Diamond',
-    collection: 'Diamond Collection',
-    isNew: true,
-    isBestSeller: true,
-    inStock: true,
-    sizes: RING_SIZES,
-    description: 'A pavé halo of diamonds surrounds a centre stone, catching light from every angle. Céleste is crafted for those who believe more is more.',
-    details: ['0.9ct centre diamond', 'Pavé halo, 38 stones', '18k white gold', 'Signature engraved profile'],
+    gemstone: 'Ruby',
+    description:
+      'A bold oval ruby held in a raised crown setting, with shoulders paved in white stones — a modern statement ring with sporting confidence.',
+    details: ['Oval-cut ruby', 'Raised crown setting', 'Pavé-set shoulders'],
   },
   {
-    id: 'lumiere-eternity',
-    name: 'Lumière Eternity Band',
+    id: 'cats-eye-signet-ring',
+    name: 'Cat’s Eye Signet Ring',
     category: 'Rings',
-    price: 1980,
-    rating: 4.7,
-    reviewCount: 98,
-    images: [
-      'https://images.pexels.com/photos/31728371/pexels-photo-31728371.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/5737285/pexels-photo-5737285.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/9080072/pexels-photo-9080072.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: '18k Gold',
-    gemstone: 'Diamond',
-    collection: 'Bridal Collection',
-    isNew: false,
-    isBestSeller: true,
-    inStock: true,
-    sizes: RING_SIZES,
-    description: 'A continuous circle of pavé diamonds — a quiet symbol of a love without end. Stack it or wear it alone.',
-    details: ['Full-circle pavé diamonds', '18k yellow gold', 'Comfort-fit interior', '0.75ct total weight'],
+    images: [`${RINGS}/cats-eye-signet-ring.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Cat’s Eye',
+    description:
+      'A sculpted signet ring with four cat’s eye cabochons arranged in a cross, framed by engraved symbols and pavé shoulders.',
+    details: ['Four cat’s eye cabochons', 'Engraved symbolic shoulders', 'Black and white pavé accents'],
   },
   {
-    id: 'seraphine-pearl',
-    name: 'Séraphine Pearl Ring',
+    id: 'moonstone-open-ring',
+    name: 'Moonstone Open Ring',
     category: 'Rings',
-    price: 1240,
-    rating: 4.6,
-    reviewCount: 64,
-    images: [
-      'https://images.pexels.com/photos/1395305/pexels-photo-1395305.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/33343007/pexels-photo-33343007.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/5987971/pexels-photo-5987971.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: 'Rose Gold',
-    gemstone: 'Pearl',
-    collection: 'Statement Pieces',
-    isNew: false,
-    isBestSeller: false,
-    inStock: true,
-    sizes: RING_SIZES,
-    description: 'A luminous Akoya pearl cradled by rose-gold petals. Séraphine blends old-world romance with contemporary craft.',
-    details: ['8mm Akoya pearl', '18k rose gold', 'Diamond accent shoulders', 'Made to order'],
+    images: [`${RINGS}/moonstone-open-ring.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Moonstone',
+    description:
+      'An open “toi et moi” ring pairing a glowing moonstone cabochon with a small green stone — two stones, two personalities, one band.',
+    details: ['Moonstone cabochon in gold claws', 'Bezel-set green accent stone', 'Open, adjustable band'],
   },
   {
-    id: 'aria-pendant',
-    name: 'Aria Pendant Necklace',
-    category: 'Necklaces',
-    price: 1675,
-    rating: 4.9,
-    reviewCount: 187,
-    images: [
-      'https://images.pexels.com/photos/21787515/pexels-photo-21787515.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/9173459/pexels-photo-9173459.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/15925159/pexels-photo-15925159.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: '18k Gold',
-    gemstone: 'Diamond',
-    collection: 'Everyday Elegance',
-    isNew: false,
-    isBestSeller: true,
-    inStock: true,
-    sizes: NECKLACE_SIZES,
-    description: 'A single diamond suspended on a delicate 18k gold chain. The Aria sits just below the collarbone — subtle, radiant, endlessly wearable.',
-    details: ['0.3ct solitaire diamond', '18k gold cable chain', 'Adjustable 16–20 inch', 'Lobster clasp'],
+    id: 'silver-cabochon-band-ring',
+    name: 'Silver Cabochon Band',
+    category: 'Rings',
+    images: [`${RINGS}/silver-cabochon-band-ring.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Cabochon Stone',
+    description:
+      'A clean, architectural silver band with a single flush-set cabochon and stepped grooves running along the shank.',
+    details: ['Flush-set cabochon', 'Grooved, stepped shank', 'High-polish finish'],
   },
   {
-    id: 'soleil-layered',
-    name: 'Soleil Layered Necklace',
-    category: 'Necklaces',
-    price: 890,
-    rating: 4.7,
-    reviewCount: 142,
-    images: [
-      'https://images.pexels.com/photos/13924051/pexels-photo-13924051.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/7514818/pexels-photo-7514818.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/4735888/pexels-photo-4735888.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: '18k Gold',
-    gemstone: 'None',
-    collection: 'Minimalist Collection',
-    isNew: true,
-    isBestSeller: false,
-    inStock: true,
-    sizes: NECKLACE_SIZES,
-    description: 'Two gold chains of varying length create effortless dimension. Pre-layered and ready to wear — the everyday signature.',
-    details: ['Two-strand layered design', '18k gold vermeil', 'Tangle-free links', '16 + 18 inch'],
+    id: 'sculptural-silver-ring-set',
+    name: 'Sculptural Silver Ring Set',
+    category: 'Rings',
+    images: [`${RINGS}/sculptural-silver-ring-set.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Dark Oval Stones',
+    description:
+      'A set of sculptural silver rings with layered, blade-like forms, granulation detail and oval-cut dark stones — designed to be worn together or apart.',
+    details: ['Oval bezel- and halo-set stones', 'Hand-applied granulation', 'Stackable design'],
   },
   {
-    id: 'noe-pearl-strand',
-    name: 'Noé Pearl Strand',
-    category: 'Necklaces',
-    price: 1450,
-    rating: 4.8,
-    reviewCount: 73,
-    images: [
-      'https://images.pexels.com/photos/8774780/pexels-photo-8774780.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/7514818/pexels-photo-7514818.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/12133990/pexels-photo-12133990.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: '18k Gold',
-    gemstone: 'Pearl',
-    collection: 'Statement Pieces',
-    isNew: false,
-    isBestSeller: false,
-    inStock: true,
-    sizes: NECKLACE_SIZES,
-    description: 'A graduated strand of freshwater pearls, hand-knotted on silk and finished with an 18k gold clasp. An heirloom in the making.',
-    details: ['Graduated freshwater pearls', 'Hand-knotted silk thread', '18k gold filigree clasp', '18 inch'],
+    id: 'twin-rail-two-stone-ring',
+    name: 'Twin Rail Two-Stone Ring',
+    category: 'Rings',
+    images: [`${RINGS}/twin-rail-two-stone-ring.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Yellow & Black Stones',
+    description:
+      'Two polished silver rails open up across the finger, bridged by a cushion-cut yellow stone and a round black stone — light and dark held in balance.',
+    details: ['Cushion-cut yellow stone', 'Round black stone', 'Bezel settings', 'Open twin-rail band'],
   },
   {
-    id: 'elysee-drop',
-    name: 'Élysée Drop Earrings',
-    category: 'Earrings',
-    price: 2150,
-    rating: 4.9,
-    reviewCount: 131,
-    images: [
-      'https://images.pexels.com/photos/5370644/pexels-photo-5370644.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/5737290/pexels-photo-5737290.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/2849743/pexels-photo-2849743.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: 'White Gold',
-    gemstone: 'Diamond',
-    collection: 'Diamond Collection',
-    isNew: false,
-    isBestSeller: true,
-    inStock: true,
-    description: 'Marquise-cut diamonds cascade in a graceful drop. The Élysée moves with you, scattering light at every turn.',
-    details: ['Marquise diamond drops', '18k white gold', '1.1ct total weight', 'Post and clutch backing'],
+    id: 'concentric-two-stone-ring',
+    name: 'Concentric Two-Stone Ring',
+    category: 'Rings',
+    images: [`${RINGS}/concentric-two-stone-ring.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Clear & Black Oval Stones',
+    description:
+      'A faceted clear stone and a smooth black cabochon sit side by side, each framed by stepped silver rings that ripple outward from the stone.',
+    details: ['Faceted clear oval stone', 'Black oval cabochon', 'Stepped concentric bezels'],
   },
   {
-    id: 'margaux-studs',
-    name: 'Margaux Diamond Studs',
-    category: 'Earrings',
-    price: 1290,
-    rating: 4.8,
-    reviewCount: 209,
-    images: [
-      'https://images.pexels.com/photos/20943476/pexels-photo-20943476.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/5737290/pexels-photo-5737290.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/35961143/pexels-photo-35961143.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: 'Platinum',
-    gemstone: 'Diamond',
-    collection: 'Everyday Elegance',
-    isNew: false,
-    isBestSeller: true,
-    inStock: true,
-    description: 'The essential pair. Round brilliant diamonds set in platinum four-prong settings — the studs you will reach for every morning.',
-    details: ['0.5ct each, VS1 clarity', 'Platinum four-prong setting', 'Screw-back closure', 'GIA certified'],
+    id: 'nawagraha-kethu-ring',
+    name: 'Kethu Ring',
+    category: 'Rings',
+    collection: 'Nawagraha',
+    images: [`${RINGS}/nawagraha-kethu-ring.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Orange Pear-Cut Stone',
+    description:
+      'From the Nawagraha collection: a pear-cut amber stone rising from swirling silver scrolls set with small white stones.',
+    details: ['Pear-cut centre stone', 'Scrolled silver setting', 'Bezel-set accent stones'],
   },
   {
-    id: 'ophelia-hoops',
-    name: 'Ophelia Pavé Hoops',
-    category: 'Earrings',
-    price: 980,
-    rating: 4.6,
-    reviewCount: 88,
-    images: [
-      'https://images.pexels.com/photos/10976654/pexels-photo-10976654.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/35270159/pexels-photo-35270159.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/28389453/pexels-photo-28389453.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: 'Rose Gold',
-    gemstone: 'Diamond',
-    collection: 'Minimalist Collection',
-    isNew: true,
-    isBestSeller: false,
-    inStock: true,
-    description: 'Slim rose-gold hoops dusted with pavé diamonds. Light enough for all-day wear, luminous enough for evening.',
-    details: ['Pavé diamond hoops', '18k rose gold', '20mm diameter', 'Hinged snap closure'],
+    id: 'nawagraha-rahu-ring',
+    name: 'Rahu Ring',
+    category: 'Rings',
+    collection: 'Nawagraha',
+    images: [`${RINGS}/nawagraha-rahu-ring.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Black Oval Stone',
+    description:
+      'From the Nawagraha collection: a deep black oval stone in a polished bezel, flanked by clusters of silver granules.',
+    details: ['Oval bezel-set stone', 'Granulated silver clusters', 'Fine, comfortable band'],
   },
   {
-    id: 'vivienne-emerald',
-    name: 'Vivienne Emerald Drops',
-    category: 'Earrings',
-    price: 2780,
-    rating: 4.7,
-    reviewCount: 41,
-    images: [
-      'https://images.pexels.com/photos/7258925/pexels-photo-7258925.png?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/7981566/pexels-photo-7981566.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/5370642/pexels-photo-5370642.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: '18k Gold',
-    gemstone: 'Emerald',
-    collection: 'Statement Pieces',
-    isNew: false,
-    isBestSeller: false,
-    inStock: true,
-    description: 'Colombian emeralds framed by diamond halos. Vivienne is a jewel-box centrepiece — vivid, regal, unforgettable.',
-    details: ['2 Colombian emeralds, 1.8ct', 'Diamond halo surround', '18k yellow gold', 'Lever-back closure'],
+    id: 'nawagraha-senasuru-ring',
+    name: 'Senasuru Ring',
+    category: 'Rings',
+    collection: 'Nawagraha',
+    images: [`${RINGS}/nawagraha-senasuru-ring.jpg`],
+    material: 'Sterling Silver',
+    description:
+      'From the Nawagraha collection: a soft, sculpted silver form with a single small stone — strength expressed quietly.',
   },
   {
-    id: 'alma-tennis',
-    name: 'Alma Tennis Bracelet',
+    id: 'nawagraha-sikuru-ring',
+    name: 'Sikuru Ring',
+    category: 'Rings',
+    collection: 'Nawagraha',
+    images: [`${RINGS}/nawagraha-sikuru-ring.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Yellow Stone',
+    description:
+      'From the Nawagraha collection: flowing silver curves wrap a small square-cut golden stone, associated with grace and harmony.',
+  },
+
+  // ── Pendants ───────────────────────────────────────────
+  {
+    id: 'aquamarine-pendant',
+    name: 'Aquamarine Pendant',
+    category: 'Pendants',
+    images: [`${PENDANTS}/aquamarine-pendant.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Aquamarine',
+    description:
+      'An emerald-cut aquamarine held in a fluid, molten-silver frame that drips and flows like water around the stone.',
+    details: ['Emerald-cut aquamarine', 'Bezel setting', 'Organic hand-formed silver frame', 'Double bail for a balanced drape'],
+  },
+  {
+    id: 'tiger-head-pendant',
+    name: 'Tiger Head Pendant',
+    category: 'Pendants',
+    images: [`${PENDANTS}/tiger-head-pendant.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Yellow Sapphire',
+    description:
+      'A fierce tiger’s head in polished silver, its brow paved in white stones and a golden-yellow stone clasped between its fangs.',
+    details: ['Emerald-cut yellow stone', 'Pavé-set brow and eyes', 'Sculpted, open-jaw design'],
+  },
+  {
+    id: 'crown-halo-pendant',
+    name: 'Crown Halo Pendant',
+    category: 'Pendants',
+    images: [`${PENDANTS}/crown-halo-pendant.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Orange Oval Stone',
+    description:
+      'A fiery oval stone cradled by pavé-set silver wings that sweep upward like a crown.',
+    details: ['Oval-cut centre stone', 'Pavé-set wing frame', 'Claw setting'],
+  },
+  {
+    id: 'celestial-veil-pendant',
+    name: 'Celestial Veil Pendant',
+    category: 'Pendants',
+    images: ['/images/concepts/celestial-veil-side.jpg'],
+    material: 'Sterling Silver',
+    gemstone: 'Aquamarine',
+    description:
+      'Born from our Celestial Veil concept: a single stone suspended within a frame of sculpted silver wings, set high to catch light from every angle.',
+  },
+  {
+    id: 'winged-eyes-pendant',
+    name: 'Winged Eyes Pendant',
+    category: 'Pendants',
+    images: [`${PENDANTS}/winged-eyes-pendant.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Golden Yellow Stones',
+    description:
+      'A pair of watchful eyes in polished silver, with feathered brows sweeping outward like wings and a golden-yellow stone set in each iris.',
+    details: ['Two round golden-yellow stones', 'Hand-detailed feathered brows', 'Worn on a fine box chain'],
+  },
+  ...[1, 2, 3, 4, 5].map(
+    (n): Product => ({
+      id: `architrave-pendant-${n}`,
+      name: `Architrave Pendant ${['I', 'II', 'III', 'IV', 'V'][n - 1]}`,
+      category: 'Pendants',
+      collection: 'Architrave',
+      images: [`${PENDANTS}/architrave-pendant-0${n}.jpg`],
+      material: 'Sterling Silver',
+      description:
+        'From our Architrave collection: a pendant built like a miniature façade, with beams and arches framing a single stone.',
+      details: ['Architectural beam-and-arch frame', 'Oval-cut centre stone', 'Worn on a fine silver chain'],
+    })
+  ),
+
+  // ── Bracelets ──────────────────────────────────────────
+  {
+    id: 'four-moods-gemstone-bracelet',
+    name: 'Four Moods Gemstone Bracelet',
     category: 'Bracelets',
-    price: 3650,
-    rating: 4.9,
-    reviewCount: 112,
-    images: [
-      'https://images.pexels.com/photos/20141640/pexels-photo-20141640.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/5370647/pexels-photo-5370647.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/34362938/pexels-photo-34362938.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: 'White Gold',
-    gemstone: 'Diamond',
-    collection: 'Diamond Collection',
-    isNew: false,
-    isBestSeller: true,
-    inStock: true,
-    sizes: BRACELET_SIZES,
-    description: 'A continuous line of brilliant-cut diamonds in white gold. The Alma tennis bracelet is the definition of understated opulence.',
-    details: ['3.2ct total diamond weight', '18k white gold', 'Double-safety clasp', 'Available in S/M/L'],
+    images: [`${BRACELETS}/four-moods-gemstone-bracelet.jpg`],
+    material: 'Sterling Silver',
+    gemstone: 'Multi-Gemstone',
+    description:
+      '“Four colours… four moods… for her.” A delicate silver chain set with alternating gemstones in red, violet, blue and gold.',
+    details: ['Four gemstone colours', 'Bezel-set oval stones', 'Hook clasp'],
   },
-  {
-    id: 'riviera-chain',
-    name: 'Riviera Gold Chain',
-    category: 'Bracelets',
-    price: 1190,
-    rating: 4.7,
-    reviewCount: 95,
-    images: [
-      'https://images.pexels.com/photos/14509640/pexels-photo-14509640.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/3641059/pexels-photo-3641059.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/37573129/pexels-photo-37573129.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: '18k Gold',
-    gemstone: 'None',
-    collection: 'Gold Collection',
-    isNew: false,
-    isBestSeller: false,
-    inStock: true,
-    sizes: BRACELET_SIZES,
-    description: 'A substantial 18k gold curb chain with a polished lobster clasp. Wear it solo or stack with the Lumière Eternity Band.',
-    details: ['18k solid gold', '7mm curb links', 'Lobster clasp', 'Made in Italy'],
-  },
-  {
-    id: 'josephine-charm',
-    name: 'Joséphine Charm Bracelet',
-    category: 'Bracelets',
-    price: 760,
-    rating: 4.5,
-    reviewCount: 57,
-    images: [
-      'https://images.pexels.com/photos/34399115/pexels-photo-34399115.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/34399059/pexels-photo-34399059.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/34399116/pexels-photo-34399116.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: 'Rose Gold',
-    gemstone: 'Diamond',
-    collection: 'Minimalist Collection',
-    isNew: true,
-    isBestSeller: false,
-    inStock: true,
-    sizes: BRACELET_SIZES,
-    description: 'A delicate rose-gold chain anchored by a single teardrop charm. Joséphine is the everyday piece you never take off.',
-    details: ['18k rose gold', 'Teardrop diamond charm', 'Adjustable length', 'Spring-ring clasp'],
-  },
-  {
-    id: 'meridian-chrono',
-    name: 'Meridian Chronograph',
-    category: 'Watches',
-    price: 4200,
-    rating: 4.8,
-    reviewCount: 63,
-    images: [
-      'https://images.pexels.com/photos/10591429/pexels-photo-10591429.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/25052866/pexels-photo-25052866.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/8854152/pexels-photo-8854152.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: '18k Gold',
-    gemstone: 'None',
-    collection: 'Statement Pieces',
-    isNew: false,
-    isBestSeller: true,
-    inStock: true,
-    sizes: WATCH_SIZES,
-    description: 'A Swiss-made chronograph in 18k gold with a hand-stitched leather strap. The Meridian is precision wrapped in warmth.',
-    details: ['Swiss automatic movement', '18k gold case', 'Sapphire crystal', 'Italian leather strap'],
-  },
-  {
-    id: 'eclipse-auto',
-    name: 'Eclipse Automatic',
-    category: 'Watches',
-    price: 2890,
-    rating: 4.7,
-    reviewCount: 48,
-    images: [
-      'https://images.pexels.com/photos/28135838/pexels-photo-28135838.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/33277498/pexels-photo-33277498.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/22032439/pexels-photo-22032439.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: 'Platinum',
-    gemstone: 'None',
-    collection: 'Minimalist Collection',
-    isNew: true,
-    isBestSeller: false,
-    inStock: true,
-    sizes: WATCH_SIZES,
-    description: 'A platinum case, a midnight dial, an exhibition caseback. The Eclipse is quiet luxury for the wrist.',
-    details: ['Swiss automatic movement', 'Platinum case', 'Exhibition caseback', 'Alligator strap'],
-  },
-  {
-    id: 'heritage-roman',
-    name: 'Heritage Roman',
-    category: 'Watches',
-    price: 1980,
-    oldPrice: 2350,
-    rating: 4.6,
-    reviewCount: 39,
-    images: [
-      'https://images.pexels.com/photos/15671805/pexels-photo-15671805.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/3419331/pexels-photo-3419331.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/9267840/pexels-photo-9267840.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: '18k Gold',
-    gemstone: 'None',
-    collection: 'Gold Collection',
-    isNew: false,
-    isBestSeller: false,
-    inStock: true,
-    sizes: WATCH_SIZES,
-    description: 'Roman numerals, a gold bezel, and a sunray dial. The Heritage is a classic dress watch with timeless proportions.',
-    details: ['Quartz movement', 'Gold-plated case', 'Roman numeral dial', 'Leather strap'],
-  },
-  {
-    id: 'revelation-set',
-    name: 'Révélation Sapphire Set',
-    category: 'Necklaces',
-    price: 5200,
-    rating: 5.0,
-    reviewCount: 27,
-    images: [
-      'https://images.pexels.com/photos/32988651/pexels-photo-32988651.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/7541801/pexels-photo-7541801.jpeg?auto=compress&cs=tinysrgb&w=900',
-      'https://images.pexels.com/photos/12133990/pexels-photo-12133990.jpeg?auto=compress&cs=tinysrgb&w=900',
-    ],
-    material: 'White Gold',
-    gemstone: 'Sapphire',
-    collection: 'Statement Pieces',
-    isNew: true,
-    isBestSeller: true,
-    inStock: true,
-    sizes: NECKLACE_SIZES,
-    description: 'A Ceylon sapphire pendant with a matching pair of drop earrings. Révélation is our atelier\'s most ambitious set — a modern heirloom.',
-    details: ['Ceylon sapphire, 3.1ct', 'Matching diamond drop earrings', '18k white gold', 'Atelier-made to order'],
-  },
+
+  // ── Earrings ───────────────────────────────────────────
+  // (add your earring designs here)
 ];
 
 export const TESTIMONIALS: { name: string; location: string; rating: number; text: string }[] = [
   {
-    name: 'Isabelle Moreau',
-    location: 'Paris, France',
+    name: 'Chiranga Wickramasinghe',
+    location: 'Colombo, Sri Lanka',
     rating: 5,
-    text: 'The Aurora Solitaire is more beautiful in person than I could have imagined. The craftsmanship is extraordinary — it catches light from across the room.',
+    text: "I recently purchased a promise ring from PATAK MUNDI, and I couldn't be happier with my choice. The design is elegant, unique, and carries a meaningful touch that makes it perfect for such a special occasion.The quality and craftsmanship are excellent, with great attention to detail and a beautiful finish. It's comfortable to wear every day and feels both durable and premium.What I love most is how it combines simplicity with sophistication, making it a timeless piece that complements any style.Overall, I had a wonderful experience with PATAK MUNDI. If you're looking for a beautifully crafted promise ring that represents something truly special, I would definitely recommend them.",
   },
   {
-    name: 'Jonathan Reyes',
-    location: 'New York, USA',
+    name: 'Adheesha Munasinghe',
+    location: 'Ratnapura, Sri Lanka',
     rating: 5,
-    text: 'I purchased the Margaux studs for my wife. The packaging, the certificate, the stones — every detail felt considered. This is what luxury should feel like.',
+    text: "I'm really happy with the beautiful ring created byPATAK Mundi. The design is elegant, unique, and the finishing is very impressive. The stone setting and overall craftsmanship look premium, and it was exactly what I expected for a special moment.Thank you PATAK Mundi for the lovely work and great service. Truly satisfied with the final result.",
   },
   {
-    name: 'Priya Kapoor',
-    location: 'London, UK',
+    name: 'Hasi Waidyarathne',
+    location: 'Malabe, Sri Lanka',
     rating: 5,
-    text: 'My Élysée drop earrings are my most-worn piece. They go from boardroom to black-tie without missing a beat. I receive compliments every single time.',
+    text: "If you're looking for a high quality aesthetic jewelry piece crafted with an inspired design story that makes each piece truly unique, Patak Mundiw is the placeI've always loved designs that feel like art, and I recently got a ring from Patak Mundi that I'm truly impressed with. With them, you don't just wear jewelry, you wear a high end piece that makes you feel truly special What makes it even more special is the ability to choose high quality gemstones according to your own preference. So I highly recommend Patak Mundi.",
   },
   {
-    name: 'Sofia Bianchi',
-    location: 'Milan, Italy',
-    rating: 4,
-    text: 'The Alma tennis bracelet is stunning and the clasp feels very secure. Shipping was prompt and the presentation box is beautiful. Highly recommend.',
+    name: 'Sumuditha Premachandra',
+    location: 'Galle, Sri Lanka',
+    rating: 5,
+    text: "I'm really impressed by PÁTAK MUNDI their designer jewellery is stylish, ethically made and distinctly Sri Lankan. Their tagline \"We make 'rare' an inclusive necessity\" speaks to an inclusive luxury vision. Highly recommend following for anyone who appreciates jewellery with character and conscious values.",
+  },
+    {
+    name: 'Dulanjith Nimnaka Premawardhana',
+    location: 'Ratnapura, Sri Lanka',
+    rating: 5,
+    text: "I ordered a silver necklace, and it arrived right on time, exactly as promised!The moment I received it, I could tell it was a high-quality, beautifully crafted piece. It feels solid, elegant, and absolutely perfect.Highly recommended for anyone looking for a stunning and reliable product!",
+  },
+    {
+    name: 'Anuradha Ranaweera',
+    location: 'Kandy, Sri Lanka',
+    rating: 5,
+    text: "The designer of Patak Mundi, Rivi Gunarathna, is a multi-talented graduate architect who has chosen to follow his passion in the gem and jewellery industry.I commissioned him to design a ring that carries hidden meanings and personal secrets. Within just a few days, he delivered a design that captured everything I had in mind. Without making a single change, I accepted it and I now wear it with pride.What makes it truly special is how perfectly my own story is embedded within the design.l highly recommend Patak Mundi and wish him all the very best in his future endeavors.",
   },
 ];

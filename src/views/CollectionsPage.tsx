@@ -11,13 +11,13 @@ export function CollectionsPage() {
     <div className="animate-fade-in">
       <div className="border-b border-charcoal-100 bg-ivory-100">
         <div className="container-lux py-14 text-center lg:py-20">
-          <p className="text-xs uppercase tracking-ultra text-champagne-600">Curated Edits</p>
+          <p className="text-xs uppercase tracking-ultra text-champagne-600">Design Series</p>
           <h1 className="mt-3 font-serif text-4xl text-charcoal-900 lg:text-5xl">
             Our Collections
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-sm font-light text-charcoal-500">
-            Each collection is a world of its own — explore the moods, materials, and moments
-            that define Lumière.
+            Our design collections — each a family of ideas that clients can make
+            their own. Every piece is made to order.
           </p>
         </div>
       </div>
@@ -52,7 +52,7 @@ export function CollectionsPage() {
                   {c.description}
                 </p>
                 <span className="group mt-6 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-charcoal-700 transition-colors group-hover:text-champagne-600">
-                  Discover Collection
+                  See the Work
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                 </span>
               </div>

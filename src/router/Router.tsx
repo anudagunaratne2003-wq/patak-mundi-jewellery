@@ -5,17 +5,12 @@ import { useCallback } from 'react';
 
 export type Route =
   | { name: 'home' }
-  | { name: 'shop'; params?: { collection?: string; category?: string } }
+  | { name: 'portfolio'; params?: { collection?: string; category?: string } }
   | { name: 'collections' }
   | { name: 'collection'; params: { collection: string } }
-  | { name: 'new-arrivals' }
   | { name: 'about' }
   | { name: 'contact' }
-  | { name: 'product'; params: { id: string } }
-  | { name: 'cart' }
-  | { name: 'checkout' }
-  | { name: 'wishlist' }
-  | { name: 'account' };
+  | { name: 'design'; params: { id: string } };
 
 export function useRouter() {
   const router = useNextRouter();
@@ -28,13 +23,13 @@ export function useRouter() {
         case 'home':
           router.push('/');
           break;
-        case 'shop':
+        case 'portfolio':
           if (route.params?.category) {
-            router.push(`/shop?category=${encodeURIComponent(route.params.category)}`);
+            router.push(`/portfolio?category=${encodeURIComponent(route.params.category)}`);
           } else if (route.params?.collection) {
-            router.push(`/shop?collection=${encodeURIComponent(route.params.collection)}`);
+            router.push(`/portfolio?collection=${encodeURIComponent(route.params.collection)}`);
           } else {
-            router.push('/shop');
+            router.push('/portfolio');
           }
           break;
         case 'collections':
@@ -43,29 +38,14 @@ export function useRouter() {
         case 'collection':
           router.push(`/collections/${encodeURIComponent(route.params.collection)}`);
           break;
-        case 'new-arrivals':
-          router.push('/new-arrivals');
-          break;
         case 'about':
           router.push('/about');
           break;
         case 'contact':
           router.push('/contact');
           break;
-        case 'product':
-          router.push(`/product/${encodeURIComponent(route.params.id)}`);
-          break;
-        case 'cart':
-          router.push('/cart');
-          break;
-        case 'checkout':
-          router.push('/checkout');
-          break;
-        case 'wishlist':
-          router.push('/wishlist');
-          break;
-        case 'account':
-          router.push('/account');
+        case 'design':
+          router.push(`/portfolio/${encodeURIComponent(route.params.id)}`);
           break;
       }
     },

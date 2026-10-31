@@ -39,11 +39,11 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
       (p) =>
         p.name.toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q) ||
-        p.collection.toLowerCase().includes(q) ||
-        p.material.toLowerCase().includes(q) ||
-        p.gemstone.toLowerCase().includes(q)
+        (p.collection ?? '').toLowerCase().includes(q) ||
+        (p.material ?? '').toLowerCase().includes(q) ||
+        (p.gemstone ?? '').toLowerCase().includes(q)
     ).slice(0, 6);
-  }, [query]);
+  }, [query, PRODUCTS]);
 
   if (!open) return null;
 
@@ -53,7 +53,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
       <div className="absolute inset-x-0 top-0 bg-ivory-50 shadow-2xl animate-fade-down">
         <div className="container-lux py-8">
           <div className="flex items-center justify-between">
-            <h2 className="font-serif text-2xl text-charcoal-800">Search</h2>
+            <h2 className="font-serif text-2xl text-charcoal-800">Search the Portfolio</h2>
             <button
               type="button"
               onClick={onClose}
@@ -70,7 +70,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search rings, necklaces, diamonds…"
+              placeholder="Search rings, pendants, aquamarine…"
               className="w-full bg-transparent font-serif text-xl text-charcoal-800 placeholder:text-charcoal-300 focus:outline-none"
             />
           </div>
@@ -83,7 +83,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                     No pieces match "{query}"
                   </p>
                   <p className="mt-2 text-sm text-charcoal-400">
-                    Try another word, or explore our collections.
+                    We may not have made it yet — tell our designer and we'll create it for you.
                   </p>
                 </div>
               ) : (
@@ -93,7 +93,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                       key={p.id}
                       type="button"
                       onClick={() => {
-                        navigate({ name: 'product', params: { id: p.id } });
+                        navigate({ name: 'design', params: { id: p.id } });
                         onClose();
                       }}
                       className="group flex items-center gap-4 bg-white p-3 text-left transition-colors hover:bg-ivory-100"
@@ -110,9 +110,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                         <p className="font-serif text-base text-charcoal-800 group-hover:text-champagne-700">
                           {p.name}
                         </p>
-                        <p className="text-sm text-charcoal-500">
-                          ${p.price.toLocaleString('en-US')}
-                        </p>
+                        <p className="text-sm text-charcoal-500">{p.gemstone ?? p.material}</p>
                       </div>
                     </button>
                   ))}

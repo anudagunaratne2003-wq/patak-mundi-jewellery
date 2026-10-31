@@ -1,8 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MessageCircle, X, Send, Sparkles, ShieldAlert, Scissors } from 'lucide-react';
+import {
+  MessageCircle,
+  X,
+  Send,
+  Sparkles,
+  ShieldAlert,
+  Scissors,
+  Paperclip,
+  Film,
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { OPEN_DESIGN_CHAT_EVENT } from '@/lib/designChat';
 
 interface ChatMessage {
   id: string;
@@ -12,18 +22,42 @@ interface ChatMessage {
   customer_name?: string | null;
   customer_email?: string | null;
   created_at: string;
+  /** Comma-separated public URLs, when the customer attached image/video files. */
+  attachment_url?: string | null;
+  /** Comma-separated 'image' | 'video' tags, aligned by index with attachment_url. */
+  attachment_type?: string | null;
 }
 
-const SESSION_KEY = 'lumiere_chat_session';
-const PROFILE_KEY = 'lumiere_chat_profile';
+interface PendingAttachment {
+  file: File;
+  previewUrl: string;
+  kind: 'image' | 'video';
+}
+
+const SESSION_KEY = 'patakmundi_chat_session';
+const PROFILE_KEY = 'patakmundi_chat_profile';
+const ATTACHMENTS_BUCKET = 'design-attachments';
+const MAX_FILES_PER_MESSAGE = 4;
+const MAX_FILE_SIZE_MB = 25;
 
 function getOrCreateSession(): string {
+  if (typeof window === 'undefined') return 'ssr';
   let id = localStorage.getItem(SESSION_KEY);
   if (!id) {
     id = `chat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     localStorage.setItem(SESSION_KEY, id);
   }
   return id;
+}
+
+function attachmentPairs(m: ChatMessage): { url: string; kind: 'image' | 'video' }[] {
+  if (!m.attachment_url) return [];
+  const urls = m.attachment_url.split(',').filter(Boolean);
+  const types = (m.attachment_type ?? '').split(',');
+  return urls.map((url, i) => ({
+    url,
+    kind: types[i] === 'video' ? 'video' : 'image',
+  }));
 }
 
 const QUICK_PROMPTS = [
@@ -51,12 +85,35 @@ export function CustomDesignChat() {
   const [screenshotWarning, setScreenshotWarning] = useState(false);
   const [windowBlurred, setWindowBlurred] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [pendingFiles, setPendingFiles] = useState<PendingAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [attachError, setAttachError] = useState<string | null>(null);
 
   const sessionIdRef = useRef(getOrCreateSession());
   const scrollRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastSeenRef = useRef<string | null>(null);
   const warningTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Let the Header / product cards / homepage CTAs open this widget, and
+  // optionally pre-fill the composer (e.g. "Enquire about the Aurora Ring").
+  useEffect(() => {
+    const onOpenRequest = (e: Event) => {
+      const detail = (e as CustomEvent<{ prefill?: string }>).detail;
+      setOpen(true);
+      if (detail?.prefill) setInput(detail.prefill);
+    };
+    window.addEventListener(OPEN_DESIGN_CHAT_EVENT, onOpenRequest);
+    return () => window.removeEventListener(OPEN_DESIGN_CHAT_EVENT, onOpenRequest);
+  }, []);
+
+  // Revoke object URLs for pending previews when they're cleared/unmounted.
+  useEffect(() => {
+    return () => {
+      pendingFiles.forEach((f) => URL.revokeObjectURL(f.previewUrl));
+    };
+  }, [pendingFiles]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -184,33 +241,117 @@ export function CustomDesignChat() {
     localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
   };
 
+  const handleFilesSelected = (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    setAttachError(null);
+    const incoming: PendingAttachment[] = [];
+    for (const file of Array.from(fileList)) {
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+      if (!isImage && !isVideo) {
+        setAttachError('Only image or video files can be attached.');
+        continue;
+      }
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        setAttachError(`Files must be under ${MAX_FILE_SIZE_MB}MB.`);
+        continue;
+      }
+      incoming.push({
+        file,
+        previewUrl: URL.createObjectURL(file),
+        kind: isVideo ? 'video' : 'image',
+      });
+    }
+    setPendingFiles((prev) => {
+      const combined = [...prev, ...incoming].slice(0, MAX_FILES_PER_MESSAGE);
+      if (prev.length + incoming.length > MAX_FILES_PER_MESSAGE) {
+        setAttachError(`You can attach up to ${MAX_FILES_PER_MESSAGE} files per message.`);
+      }
+      return combined;
+    });
+  };
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles((prev) => {
+      const copy = [...prev];
+      const [removed] = copy.splice(index, 1);
+      if (removed) URL.revokeObjectURL(removed.previewUrl);
+      return copy;
+    });
+  };
+
+  /** Uploads all pending files to Supabase Storage; returns aligned URL/type
+   * arrays. Falls back to local blob URLs (visible for this session only)
+   * if the storage bucket isn't reachable, so the feature still works
+   * end-to-end during design/preview even before a bucket is provisioned. */
+  const uploadPendingFiles = async (): Promise<{ urls: string[]; types: string[] }> => {
+    const urls: string[] = [];
+    const types: string[] = [];
+    for (const attachment of pendingFiles) {
+      const ext = attachment.file.name.split('.').pop() || 'dat';
+      const path = `${sessionIdRef.current}/${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 8)}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from(ATTACHMENTS_BUCKET)
+        .upload(path, attachment.file, { upsert: false });
+
+      if (uploadError) {
+        // Storage bucket may not exist yet — keep the local preview so the
+        // customer's message still shows their attachment in this session.
+        urls.push(attachment.previewUrl);
+      } else {
+        const { data } = supabase.storage.from(ATTACHMENTS_BUCKET).getPublicUrl(path);
+        urls.push(data.publicUrl);
+      }
+      types.push(attachment.kind);
+    }
+    return { urls, types };
+  };
+
   const sendMessage = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || !profile) return;
+    const hasFiles = pendingFiles.length > 0;
+    if (!trimmed && !hasFiles) return;
+    if (!profile) return;
     setLoading(true);
+    setUploading(hasFiles);
     setInput('');
+
+    const { urls, types } = hasFiles
+      ? await uploadPendingFiles()
+      : { urls: [], types: [] };
+    setPendingFiles([]);
+    setUploading(false);
+
+    const messageBody = trimmed || (hasFiles ? 'Shared reference images/video for a custom design.' : '');
 
     const { error } = await supabase.from('custom_design_chats').insert({
       session_id: sessionIdRef.current,
       sender: 'customer',
-      message: trimmed,
+      message: messageBody,
       customer_name: profile.name,
       customer_email: profile.email,
+      attachment_url: urls.length ? urls.join(',') : null,
+      attachment_type: types.length ? types.join(',') : null,
     });
 
     setLoading(false);
     if (error) {
-      // still show the message locally
+      // still show the message locally (e.g. attachment_url column not yet
+      // migrated on this project, or a transient network error)
       setMessages((prev) => [
         ...prev,
         {
           id: `local-${Date.now()}`,
           session_id: sessionIdRef.current,
           sender: 'customer',
-          message: trimmed,
+          message: messageBody,
           customer_name: profile.name,
           customer_email: profile.email,
           created_at: new Date().toISOString(),
+          attachment_url: urls.length ? urls.join(',') : null,
+          attachment_type: types.length ? types.join(',') : null,
         },
       ]);
       return;
@@ -223,7 +364,7 @@ export function CustomDesignChat() {
     sendMessage(input);
   };
 
-  const watermark = `LUMIÈRE · Session ${sessionIdRef.current.slice(-6)} · Confidential`;
+  const watermark = `PÁTAK MUNDI · Session ${sessionIdRef.current.slice(-6)} · Confidential`;
 
   return (
     <>
@@ -242,7 +383,7 @@ export function CustomDesignChat() {
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-champagne-400 opacity-40" />
           <MessageCircle size={22} className="relative" strokeWidth={1.5} />
         </span>
-        <span className="text-xs font-medium uppercase tracking-widest">Custom Design</span>
+        <span className="text-xs font-medium uppercase tracking-widest">Design With Us</span>
         {unread > 0 && (
           <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-champagne-500 px-1.5 text-[10px] font-medium text-white">
             {unread}
@@ -340,8 +481,8 @@ export function CustomDesignChat() {
                     Tell us about your dream piece
                   </p>
                   <p className="mt-2 max-w-xs text-sm font-light text-charcoal-500">
-                    Share your vision — gemstones, metal, occasion — and our atelier will
-                    respond with ideas.
+                    Share your vision — gemstones, metal, occasion — and attach reference
+                    photos or a short video. Our atelier will respond with ideas.
                   </p>
                   <div className="mt-5 w-full space-y-2">
                     {QUICK_PROMPTS.map((q) => (
@@ -376,6 +517,27 @@ export function CustomDesignChat() {
                           </p>
                         )}
                         <p className="whitespace-pre-wrap leading-relaxed">{m.message}</p>
+                        {attachmentPairs(m).length > 0 && (
+                          <div className="mt-2 grid grid-cols-2 gap-1.5">
+                            {attachmentPairs(m).map((a, i) =>
+                              a.kind === 'video' ? (
+                                <video
+                                  key={i}
+                                  src={a.url}
+                                  controls
+                                  className="h-24 w-full rounded-sm object-cover"
+                                />
+                              ) : (
+                                <img
+                                  key={i}
+                                  src={a.url}
+                                  alt="Reference attachment"
+                                  className="h-24 w-full rounded-sm object-cover"
+                                />
+                              )
+                            )}
+                          </div>
+                        )}
                         <p
                           className={`mt-1 text-[10px] ${
                             m.sender === 'customer' ? 'text-ivory-200/50' : 'text-charcoal-400'
@@ -429,27 +591,79 @@ export function CustomDesignChat() {
               </form>
             </div>
           ) : (
-            <form
-              onSubmit={handleSubmit}
-              className="flex items-center gap-2 border-t border-charcoal-100 bg-white p-3"
-            >
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Describe your custom piece…"
-                disabled={loading}
-                className="flex-1 border border-charcoal-200 px-4 py-2.5 text-sm text-charcoal-800 placeholder:text-charcoal-400 focus:border-champagne-400 focus:outline-none disabled:opacity-50"
-              />
-              <button
-                type="submit"
-                disabled={loading || !input.trim()}
-                className="flex h-10 w-10 items-center justify-center bg-charcoal-900 text-ivory-50 transition-colors hover:bg-champagne-500 disabled:opacity-40"
-                aria-label="Send message"
-              >
-                <Send size={16} />
-              </button>
-            </form>
+            <div className="border-t border-charcoal-100 bg-white">
+              {attachError && (
+                <p className="px-4 pt-2 text-[11px] text-red-500">{attachError}</p>
+              )}
+              {pendingFiles.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto px-3 pt-3">
+                  {pendingFiles.map((f, i) => (
+                    <div key={i} className="relative shrink-0">
+                      {f.kind === 'video' ? (
+                        <div className="relative h-14 w-14 overflow-hidden rounded-sm bg-charcoal-900">
+                          <video src={f.previewUrl} className="h-full w-full object-cover opacity-70" />
+                          <Film size={16} className="absolute inset-0 m-auto text-ivory-50" />
+                        </div>
+                      ) : (
+                        <img
+                          src={f.previewUrl}
+                          alt="Attachment preview"
+                          className="h-14 w-14 rounded-sm object-cover"
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removePendingFile(i)}
+                        aria-label="Remove attachment"
+                        className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-charcoal-900 text-ivory-50"
+                      >
+                        <X size={11} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <form onSubmit={handleSubmit} className="flex items-center gap-2 p-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    handleFilesSelected(e.target.files);
+                    e.target.value = '';
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={loading || pendingFiles.length >= MAX_FILES_PER_MESSAGE}
+                  aria-label="Attach image or video"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center text-charcoal-500 transition-colors hover:text-champagne-600 disabled:opacity-40"
+                >
+                  <Paperclip size={18} />
+                </button>
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={
+                    uploading ? 'Uploading your files…' : 'Describe your custom piece, or attach a photo…'
+                  }
+                  disabled={loading}
+                  className="flex-1 border border-charcoal-200 px-4 py-2.5 text-sm text-charcoal-800 placeholder:text-charcoal-400 focus:border-champagne-400 focus:outline-none disabled:opacity-50"
+                />
+                <button
+                  type="submit"
+                  disabled={loading || (!input.trim() && pendingFiles.length === 0)}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center bg-charcoal-900 text-ivory-50 transition-colors hover:bg-champagne-500 disabled:opacity-40"
+                  aria-label="Send message"
+                >
+                  <Send size={16} />
+                </button>
+              </form>
+            </div>
           )}
 
           {/* Footer note */}

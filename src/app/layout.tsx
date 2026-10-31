@@ -1,14 +1,13 @@
 import type { Metadata } from 'next';
 import { StoreProvider } from '@/store/StoreContext';
 import { ProductsProvider } from '@/store/ProductsContext';
-import { AuthProvider } from '@/store/AuthContext';
 import { Shell } from '@/components/Shell';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Lumière Jewels — Fine Jewellery & Bespoke Atelier',
+  title: 'Pátak Mundi — Bespoke Jewellery, Designed With You',
   description:
-    'Discover Lumière Jewels — handcrafted fine jewellery, bespoke atelier designs, and timeless collections. Complimentary worldwide shipping & returns.',
+    'Pátak Mundi is a bespoke jewellery atelier. Every piece is designed to order around the person who will wear it. Browse our portfolio of past commissions and start your own design with our designer.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -22,11 +21,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <ProductsProvider>
-          <AuthProvider>
-            <StoreProvider>
-              <Shell>{children}</Shell>
-            </StoreProvider>
-          </AuthProvider>
+          <StoreProvider>
+            <Shell>{children}</Shell>
+          </StoreProvider>
         </ProductsProvider>
       </body>
     </html>
