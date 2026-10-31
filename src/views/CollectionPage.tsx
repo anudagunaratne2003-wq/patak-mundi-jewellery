@@ -15,7 +15,7 @@ export function CollectionPage({ collection }: { collection: string }) {
   );
   const products = useMemo(
     () => PRODUCTS.filter((p) => p.collection === collection),
-    [collection]
+    [collection, PRODUCTS]
   );
 
   if (!meta) {

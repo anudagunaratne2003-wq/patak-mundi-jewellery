@@ -3,6 +3,17 @@
 @tailwind utilities;
 
 @layer base {
+  /* The weight range maps every font-light / font-medium class to this one
+     file, rather than the browser faking bold or light versions. */
+  @font-face {
+    font-family: 'Lameur';
+    src: url('/fonts/Lameur-Regular.woff2') format('woff2'),
+      url('/fonts/Lameur-Regular.otf') format('opentype'),
+      url('/fonts/Lameur-Regular.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
   html {
     scroll-behavior: smooth;
   }
@@ -57,4 +68,14 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #b8913f;
+}
+
+/* Progress bar for the Discover the Concepts slideshow (ConceptsShowcase) */
+@keyframes slideProgress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
 }

@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import { ArrowRight, Gem, Sparkles, Hammer, Leaf } from 'lucide-react';
-import { useRouter } from '@/router/Router';
+import { ArrowRight, Gem, Sparkles, Hammer, Leaf } from "lucide-react";
+import { useRouter } from "@/router/Router";
+import { openDesignChat } from "@/lib/designChat";
 
 export function AboutPage() {
   const { navigate } = useRouter();
@@ -11,14 +12,16 @@ export function AboutPage() {
       {/* Hero */}
       <section className="relative h-[55vh] min-h-[420px] overflow-hidden">
         <img
-          src="https://images.pexels.com/photos/7167035/pexels-photo-7167035.jpeg?auto=compress&cs=tinysrgb&w=1920"
+          src="/images/brand/about-hero.jpg"
           alt="Artisans crafting jewellery"
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-charcoal-900/55" />
         <div className="relative z-10 flex h-full items-center justify-center text-center">
           <div className="max-w-2xl px-6">
-            <p className="text-xs uppercase tracking-ultra text-ivory-200/90">Our Story</p>
+            <p className="text-xs uppercase tracking-ultra text-ivory-200/90">
+              Our Story
+            </p>
             <h1 className="mt-4 font-serif text-4xl text-ivory-50 sm:text-5xl lg:text-6xl">
               Crafted with Intention
             </h1>
@@ -29,16 +32,21 @@ export function AboutPage() {
       {/* Intro */}
       <section className="container-lux py-20 lg:py-28">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-xs uppercase tracking-ultra text-champagne-600">Est. 1984</p>
+          <p className="text-xs uppercase tracking-ultra text-champagne-600">
+            Est. 1984
+          </p>
           <h2 className="mt-4 font-serif text-3xl leading-snug text-charcoal-900 lg:text-4xl">
             Four decades of devotion to the art of fine jewellery.
           </h2>
           <p className="mt-6 text-base font-light leading-relaxed text-charcoal-600">
-            Lumière Jewels was founded on a simple belief: that jewellery should be made to be
-            treasured. From a single atelier in Paris, we have grown into a house known for
-            uncompromising craftsmanship, ethically sourced materials, and designs that
-            transcend the seasonal. Every piece that leaves our workshop is a quiet promise —
-            to last, to matter, to shine.
+            Pátak Mundi was founded on a simple belief: that the most treasured
+            jewellery is made for one person alone. We don't keep a catalogue or
+            sell off the shelf — every piece starts as a conversation with our
+            designer and is crafted only once. From a single atelier in Paris, we have grown
+            into a house known for uncompromising craftsmanship, ethically
+            sourced materials, and designs that transcend the seasonal. Every
+            piece that leaves our workshop is a quiet promise — to last, to
+            matter, to shine.
           </p>
         </div>
       </section>
@@ -50,18 +58,18 @@ export function AboutPage() {
             {[
               {
                 icon: Hammer,
-                title: 'Master Craftsmanship',
-                body: 'Each piece is hand-finished by artisans with decades of experience. We never rush the work — a single ring can take weeks.',
+                title: "Master Craftsmanship",
+                body: "Each piece is hand-finished by artisans with decades of experience. We never rush the work — a single ring can take weeks.",
               },
               {
                 icon: Gem,
-                title: 'Ethically Sourced',
-                body: 'Every gemstone is conflict-free and traceable to its origin. We work only with suppliers who share our standards.',
+                title: "Ethically Sourced",
+                body: "Every gemstone is conflict-free and traceable to its origin. We work only with suppliers who share our standards.",
               },
               {
                 icon: Leaf,
-                title: 'Made to Last',
-                body: 'We use only solid precious metals and offer a lifetime warranty on every piece of fine jewellery we make.',
+                title: "Made to Last",
+                body: "We use only solid precious metals and offer a lifetime warranty on every piece of fine jewellery we make.",
               },
             ].map(({ icon: Icon, title, body }, i) => (
               <div
@@ -70,9 +78,15 @@ export function AboutPage() {
                 style={{ animationDelay: `${i * 100}ms` }}
               >
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white">
-                  <Icon size={28} className="text-champagne-500" strokeWidth={1.25} />
+                  <Icon
+                    size={28}
+                    className="text-champagne-500"
+                    strokeWidth={1.25}
+                  />
                 </div>
-                <h3 className="mt-6 font-serif text-2xl text-charcoal-900">{title}</h3>
+                <h3 className="mt-6 font-serif text-2xl text-charcoal-900">
+                  {title}
+                </h3>
                 <p className="mx-auto mt-3 max-w-xs text-sm font-light leading-relaxed text-charcoal-500">
                   {body}
                 </p>
@@ -94,26 +108,34 @@ export function AboutPage() {
             />
           </div>
           <div className="lg:pl-8">
-            <Sparkles size={28} className="text-champagne-500" strokeWidth={1.25} />
+            <Sparkles
+              size={28}
+              className="text-champagne-500"
+              strokeWidth={1.25}
+            />
             <h2 className="mt-4 font-serif text-3xl text-charcoal-900 lg:text-4xl">
               Inside the Atelier
             </h2>
             <p className="mt-5 text-base font-light leading-relaxed text-charcoal-600">
-              Our workshop is where tradition meets precision. Sketches become wax models,
-              wax models become castings, and castings are refined by hand until every curve
-              feels inevitable. Stones are set under microscopes, clasps tested a hundred
-              times, and surfaces polished to a mirror finish.
+              Our workshop is where tradition meets precision. Sketches become
+              wax models, wax models become castings, and castings are refined
+              by hand until every curve feels inevitable. Stones are set under
+              microscopes, clasps tested a hundred times, and surfaces polished
+              to a mirror finish.
             </p>
             <p className="mt-4 text-base font-light leading-relaxed text-charcoal-600">
               It is slow work. We think that is the point.
             </p>
             <button
               type="button"
-              onClick={() => navigate({ name: 'shop' })}
+              onClick={() => navigate({ name: "portfolio" })}
               className="group mt-8 flex items-center gap-2 border border-charcoal-300 px-8 py-4 text-xs font-medium uppercase tracking-widest text-charcoal-800 transition-all hover:border-champagne-400 hover:text-champagne-700"
             >
-              Explore Our Pieces
-              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+              See Our Portfolio
+              <ArrowRight
+                size={16}
+                className="transition-transform group-hover:translate-x-1"
+              />
             </button>
           </div>
         </div>
@@ -135,10 +157,10 @@ export function AboutPage() {
             </h2>
             <button
               type="button"
-              onClick={() => navigate({ name: 'shop' })}
+              onClick={() => openDesignChat()}
               className="mt-7 bg-ivory-50 px-10 py-4 text-xs font-medium uppercase tracking-widest text-charcoal-900 transition-colors hover:bg-champagne-300"
             >
-              Shop the Collection
+              Start Your Commission
             </button>
           </div>
         </div>
